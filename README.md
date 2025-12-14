@@ -1,10 +1,10 @@
-# AI Auto-Rename Screenshot 📸
+# AI Auto-Rename Screenshot
 
 A smart background utility for macOS that automatically renames your screenshots based on their visual content using Google Gemini AI.
 
 Stop dealing with files like `Screenshot 2024-12-14 at 10.00.00.png`. Let AI rename them to `login_page_error.png` or `cat_playing_ball.png` instantly.
 
-## ✨ Features
+## Features
 
 - **Real-time Monitoring**: Watches specific folders for new images.
 - **AI-Powered**: Uses Gemini CLI to analyze and rename files.
@@ -12,7 +12,7 @@ Stop dealing with files like `Screenshot 2024-12-14 at 10.00.00.png`. Let AI ren
 - **Recursive Watch**: Can monitor subdirectories (great for Blogs or Project folders).
 - **Background Service**: Runs silently in the background using macOS Launch Agents.
 
-## 🛠 Prerequisites
+## Prerequisites
 
 Before using this tool, you need to install the following dependencies:
 
@@ -24,7 +24,7 @@ Before using this tool, you need to install the following dependencies:
 2.  **Gemini CLI**: The interface to the AI model.
     *(Assuming you have a tool named 'gemini' installed. If this is a custom tool, ensure it's in your PATH)*
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 ### 1. Clone the repository
 ```bash
@@ -34,7 +34,7 @@ cd screenshot-ai-renamer
 
 ### 2. Setup (Two Options)
 
-#### Option A: Quick Setup (Recommended) 🤖
+#### Option A: Quick Setup (Recommended)
 Run the interactive setup script. It will auto-detect your screenshot folder and Gemini installation.
 ```bash
 ./setup.sh
@@ -62,7 +62,7 @@ You can run the script directly to test if it works:
 ```
 Try taking a screenshot. If you see logs and the file is renamed, it works!
 
-## 🤖 Run in Background (Auto-Start)
+## Run in Background (Auto-Start)
 
 To have this script run automatically when you log in, you need to set up a `launchd` service.
 
@@ -77,5 +77,6 @@ To have this script run automatically when you log in, you need to set up a `lau
    launchctl load ~/Library/LaunchAgents/com.darrellwang.geminimonitor.plist
    ```
 
-## 📝 License
-MIT
+## Special Thanks
+
+Inspired by this post: https://www.threads.com/@henryyang_tw/post/DSL9LbCkSn4
