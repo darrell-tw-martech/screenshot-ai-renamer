@@ -12,6 +12,15 @@ echo -e "${BLUE}   🤖 Gemini Screenshot Auto-Renamer Setup    ${NC}"
 echo -e "${BLUE}==============================================${NC}"
 echo ""
 
+# 0. 檢查 fswatch 是否安裝
+echo -e "${YELLOW}[0/4] 檢查必要依賴...${NC}"
+if ! command -v fswatch &> /dev/null; then
+    echo -e "${RED}✗ 找不到 fswatch，請先執行: brew install fswatch${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✓ fswatch 已安裝${NC}"
+echo ""
+
 # 1. 檢查並偵測 Gemini 指令位置
 echo -e "${YELLOW}[1/4] 正在尋找 Gemini CLI...${NC}"
 if command -v gemini &> /dev/null; then
@@ -20,8 +29,16 @@ if command -v gemini &> /dev/null; then
     GEMINI_CMD="$DETECTED_GEMINI"
 else
     echo -e "${RED}✗ 找不到 'gemini' 指令。${NC}"
-    read -p "請輸入 gemini 執行檔的絕對路徑 (例如 /opt/homebrew/bin/gemini): " USER_GEMINI
-    GEMINI_CMD="$USER_GEMINI"
+    while true; do
+        read -r -p "請輸入 gemini 執行檔的絕對路徑 (例如 /opt/homebrew/bin/gemini): " USER_GEMINI
+        if [ -x "$USER_GEMINI" ]; then
+            GEMINI_CMD="$USER_GEMINI"
+            echo -e "${GREEN}✓ 已設定 Gemini 路徑: $GEMINI_CMD${NC}"
+            break
+        else
+            echo -e "${RED}✗ 該路徑不存在或無法執行，請重新輸入${NC}"
+        fi
+    done
 fi
 
 echo ""
@@ -40,7 +57,7 @@ fi
 SYSTEM_SCREENSHOT_DIR="${SYSTEM_SCREENSHOT_DIR/#\~/$HOME}"
 
 echo -e "偵測到的截圖路徑為: ${BLUE}$SYSTEM_SCREENSHOT_DIR${NC}"
-read -p "是否要監控此資料夾? (y/n) [預設: y]: " CONFIRM_SS
+read -r -p "是否要監控此資料夾? (y/n) [預設: y]: " CONFIRM_SS
 CONFIRM_SS=${CONFIRM_SS:-y}
 
 WATCH_DIRS=()
@@ -56,7 +73,7 @@ echo "您是否還有其他資料夾需要 AI 自動改名？(例如 Blog 文章
 echo "如果不加，請直接按 Enter 跳過。"
 
 while true; do
-    read -p "請輸入路徑 (或按 Enter 結束): " EXTRA_DIR
+    read -r -p "請輸入路徑 (或按 Enter 結束): " EXTRA_DIR
     if [ -z "$EXTRA_DIR" ]; then
         break
     fi
@@ -74,6 +91,12 @@ done
 
 echo ""
 
+# 檢查是否有設定監控資料夾
+if [ ${#WATCH_DIRS[@]} -eq 0 ]; then
+    echo -e "${RED}⚠️  沒有設定任何監控資料夾，請重新執行 setup.sh${NC}"
+    exit 1
+fi
+
 # 4. 生成 .env 檔案
 echo -e "${YELLOW}[4/4] 正在生成設定檔 (.env)...${NC}"
 
@@ -81,11 +104,17 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 ENV_FILE="$SCRIPT_DIR/.env"
 LOG_FILE="$SCRIPT_DIR/monitor.log"
 
+# 備份現有 .env 檔案
+if [ -f "$ENV_FILE" ]; then
+    cp "$ENV_FILE" "$ENV_FILE.bak"
+    echo -e "${YELLOW}已備份舊設定至 .env.bak${NC}"
+fi
+
 # 構建 Watch Dirs 字串
 DIRS_STRING=""
 for dir in "${WATCH_DIRS[@]}"; do
-    DIRS_STRING+="    \"$dir\""$வையை'
-'
+    DIRS_STRING+="    \"$dir\"
+"
 done
 
 cat > "$ENV_FILE" <<EOF
@@ -105,7 +134,18 @@ GEMINI_CMD="$GEMINI_CMD"
 LOG_FILE="$LOG_FILE"
 EOF
 
-echo -e "${GREEN}✅ 設定完成！已建立 .env 檔案。${NC}"
+echo -e "${GREEN}✅ 設定完成！${NC}"
+echo ""
+echo -e "${BLUE}==============================================${NC}"
+echo -e "${BLUE}               📋 設定摘要                    ${NC}"
+echo -e "${BLUE}==============================================${NC}"
+echo -e "  Gemini 路徑: ${GREEN}$GEMINI_CMD${NC}"
+echo -e "  監控資料夾:"
+for dir in "${WATCH_DIRS[@]}"; do
+    echo -e "    - ${GREEN}$dir${NC}"
+done
+echo -e "  Log 檔案: ${GREEN}$LOG_FILE${NC}"
+echo -e "${BLUE}==============================================${NC}"
 echo ""
 echo -e "您現在可以執行以下指令來測試："
-echo -e "${BLUE}./monitor_gemini.sh${NC}"
+echo -e "${GREEN}./monitor_gemini.sh${NC}"
